@@ -1,8 +1,7 @@
 #pragma once
 #include "graph.hpp"
 
-bool dfs(Graph& g, int source, int sink, vector<bool>& visited, vector<Edge*>& path);
+typedef bool (*AugPathFinder)(Graph&, int, int, vector<bool>&, vector<Edge*>&); // algoritmo de busca de caminho aumentante
 
 int fordFulkerson(Graph& g,
-                  function<bool(Graph&, int, int, vector<bool>&, vector<Edge*>&)> pathFind,
-                  int source, int sink);
+                    AugPathFinder augPathFind);

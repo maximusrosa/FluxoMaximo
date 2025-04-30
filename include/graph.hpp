@@ -5,17 +5,20 @@
 #include <string>
 #include <climits>
 #include <sstream>
+#include <fstream>
 #include <algorithm>
+#define INF INT_MAX
 
 using namespace std;
 
 struct Edge {
+    int from;
     int to;
     int capacity;
     int flow;
     Edge* residual;
 
-    Edge(int to, int capacity);
+    Edge(int from, int to, int capacity);
 
     int residualCapacity() const;
     void augment(int bottleneck);
@@ -28,6 +31,9 @@ private:
     vector<vector<Edge*>> adjVector;
 
 public:
+    int source;
+    int sink;
+    
     Graph(int numVertices);
     Graph(istream& in);
 
@@ -38,4 +44,6 @@ public:
     const vector<Edge*>& getAdjList(int u) const;
 
     void addEdge(int u, int v, int capacity);
+
+    void printGraph() const;
 };

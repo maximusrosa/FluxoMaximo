@@ -1,6 +1,6 @@
 #include "graph.hpp"
 
-Edge::Edge(int to, int capacity) : to(to), capacity(capacity), flow(0), residual(nullptr) {}
+Edge::Edge(int from, int to, int capacity) : from(from), to(to), capacity(capacity), flow(0), residual(nullptr) {}
 
 int Edge::residualCapacity() const {
     return capacity - flow;
@@ -17,27 +17,42 @@ Graph::Graph(int numVertices)
 
 Graph::Graph(istream& in) {
     string line, dummy;
-    unsigned n, m;
+    unsigned n = 0, m = 0;
 
-    while (getline(in, line) && line.substr(0, 4) != "p sp");
+    while (getline(in, line)) {
+        if (line.substr(0, 5) == "p max") {  // Aceita 'p max'
+            stringstream linestr(line);
+            linestr >> dummy >> dummy >> n >> m;
+            numVertices = n;
+            numEdges = m;
+            adjVector.resize(n);
+        }
+        else if (line.substr(0, 2) == "n ") { // Lê source e sink
+            stringstream nodestr(line);
+            char nc;
+            unsigned v;
+            string role;
+            nodestr >> nc >> v >> role;
+            v--; // índice começa de 0
+            if (role == "s")
+                source = v;
+            else if (role == "t")
+                sink = v;
+        }
+        else if (line.substr(0, 2) == "a ") { // Lê arestas
+            if (adjVector.empty()) {
+                cerr << "Erro: encontrou aresta antes de definir 'p max'." << endl;
+                exit(1);
+            }
 
-    stringstream linestr(line);
-    linestr >> dummy >> dummy >> n >> m;
-
-    numVertices = n;
-    numEdges = m;
-    adjVector.resize(n);
-
-    for (unsigned i = 0; i < m; ++i) {
-        getline(in, line);
-        if (line.substr(0, 2) == "a ") {
             stringstream arc(line);
-            unsigned u, v, w;
             char ac;
+            unsigned u, v, w;
             arc >> ac >> u >> v >> w;
-            u--; v--;
+            u--; v--; // índice 0-based
             addEdge(u, v, w);
         }
+        // ignora linhas começando com 'c'
     }
 }
 
@@ -62,15 +77,25 @@ const vector<Edge*>& Graph::getAdjList(int u) const {
 }
 
 void Graph::addEdge(int u, int v, int capacity) {
-    Edge* e1 = new Edge(v, capacity);
-    Edge* e2 = new Edge(u, 0);
+    Edge* uv = new Edge(u, v, capacity);
+    Edge* vu = new Edge(v, u, 0); // arco residual
 
-    e1->residual = e2;
-    e2->residual = e1;
+    uv->residual = vu;
+    vu->residual = uv;
 
-    adjVector[u].push_back(e1);
-    adjVector[v].push_back(e2);
+    adjVector[u].push_back(uv);
+    adjVector[v].push_back(vu);
 
     numEdges++;
+}
+
+void Graph::printGraph() const {
+    for (int i = 0; i < numVertices; ++i) {
+        cout << "Vertex " << i << ": ";
+        for (const auto& edge : adjVector[i]) {
+            cout << "(" << edge->to << ", " << edge->capacity << ") ";
+        }
+        cout << endl;
+    }
 }
 

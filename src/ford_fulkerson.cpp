@@ -1,51 +1,20 @@
 #include "ford_fulkerson.hpp"
 
-bool dfs(Graph& g, int source, int sink, vector<bool>& visited, vector<Edge*>& path) {
-    vector<int> stack;
-    vector<Edge*> parent(g.getNumVertices(), nullptr);
-    stack.push_back(source);
-
-    while (!stack.empty()) {
-        int u = stack.back();
-        stack.pop_back();
-
-        if (u == sink) {
-            while (parent[u] != nullptr) {
-                path.push_back(parent[u]);
-                u = parent[u]->residual->to;
-            }
-            reverse(path.begin(), path.end());
-            return true;
-        }
-
-        visited[u] = true;
-
-        for (Edge* e : g.getAdjList(u)) {
-            if (!visited[e->to] && e->residualCapacity() > 0) {
-                stack.push_back(e->to);
-                parent[e->to] = e;
-            }
-        }
-    }
-
-    return false;
-}
-
 int fordFulkerson(Graph& g, 
-                  function<bool(Graph&, int, int, vector<bool>&, vector<Edge*>&)> pathFind, 
-                  int source, int sink) { 
+                  AugPathFinder augPathFind) { 
     int maxFlow = 0;
     vector<Edge*> path;
     vector<bool> visited;
 
+    
     while (true) {
         visited.assign(g.getNumVertices(), false);
         path.clear();
-        if (!pathFind(g, source, sink, visited, path)) break;
+        if (!augPathFind(g, g.source, g.sink, visited, path)) break;
 
-        int pathFlow = INT_MAX;
+        int pathFlow = INF;
         for (Edge* e : path) {
-            pathFlow = min(pathFlow, e->residualCapacity());
+            pathFlow = min(pathFlow, e->residualCapacity()); // bottleneck
         }
 
         for (Edge* e : path) {
@@ -55,7 +24,7 @@ int fordFulkerson(Graph& g,
         maxFlow += pathFlow;
 
         vector<int> pathVertices;
-        pathVertices.push_back(source);
+        pathVertices.push_back(g.source);
         for (Edge* e : path) {
             pathVertices.push_back(e->to);
         }
