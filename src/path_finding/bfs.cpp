@@ -1,4 +1,4 @@
-#include "bfs.hpp"
+#include "path_finding/bfs.hpp"
 
 bool bfs(Graph& g, int source, int sink, vector<bool>& visited, vector<Edge*>& path) {
     queue<int> q;

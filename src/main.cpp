@@ -1,7 +1,5 @@
 #include "ford_fulkerson.hpp"
-#include "dfs.hpp"
-#include "bfs.hpp"
-#include "fattest_path.hpp"
+#include <string>
 
 void testeRapido(){
     Graph g(6);
@@ -23,23 +21,61 @@ void testeRapido(){
     cout << "The maximum possible flow is " << maxFlow << "\n";
 }
 
+void printUsage(const char* programName) {
+    cerr << "Uso: " << programName << " <arquivo_de_grafo> <método_de_busca>" << endl;
+    cerr << "Métodos de busca disponíveis: bfs, dfs, fattest" << endl;
+}
 
-int main() {
-    // construindo a partir do arquivo
-    ifstream in("graphs/g1.gr");
-    cout << "Lendo grafo do arquivo...\n";
+void parseArguments(int argc, char *argv[], string& filePath, AugPathFinder& pathFinder) {
+    if (argc != 3) {
+        cerr << "Número inválido de argumentos." << endl;
+        printUsage(argv[0]);
+        exit(1);
+    }
+
+    filePath = argv[1];
+    string searchMethod = argv[2];
+
+    switch (searchMethod[0]) {
+        case 'b':
+            cout << "Usando método de busca BFS" << endl;
+            pathFinder = bfs;
+            break;
+
+        case 'd':
+            cout << "Usando método de busca DFS" << endl;
+            pathFinder = dfs;
+            break;
+
+        case 'f':
+            cout << "Usando método de busca Fattest Path" << endl;
+            pathFinder = fattestPath;
+            break;
+
+        default:
+            cerr << "Método de busca inválido: " << searchMethod << endl;
+            printUsage(argv[0]);
+            exit(1);
+    }
+
+}
+
+int main(int argc, char *argv[]) {
+    string filePath;
+    AugPathFinder pathFinder;
+
+    parseArguments(argc, argv, filePath, pathFinder);
+
+    ifstream in(filePath);
+    cout << "Lendo grafo do arquivo: " << filePath << endl;
     if (!in) {
-        cerr << "Erro ao abrir o arquivo.\n";
+        cerr << "Erro ao abrir o arquivo: " << filePath << endl;
         return 1;
     }
 
-
     Graph g(in);
+    int maxFlow = fordFulkerson(g, pathFinder); 
 
-    g.printGraph();
-
-    int maxFlow = fordFulkerson(g, bfs); 
-
-    cout << "The maximum possible flow is " << maxFlow << "\n";
+    cout << "O fluxo máximo possível é " << maxFlow << endl;
     return 0;
 }

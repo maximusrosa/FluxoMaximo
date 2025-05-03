@@ -85,8 +85,6 @@ void Graph::addEdge(int u, int v, int capacity) {
 
     adjVector[u].push_back(uv);
     adjVector[v].push_back(vu);
-
-    numEdges++;
 }
 
 void Graph::printGraph() const {

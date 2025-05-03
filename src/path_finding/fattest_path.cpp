@@ -1,5 +1,4 @@
-#include "graph.hpp"
-#include "fattest_path.hpp"
+#include "path_finding/fattest_path.hpp"
 
 bool State::operator<(const State& other) const {
     return bottleneck < other.bottleneck; // max-heap (prioriza maior bottleneck)

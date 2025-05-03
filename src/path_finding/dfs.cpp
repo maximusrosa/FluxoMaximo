@@ -1,4 +1,4 @@
-#include "dfs.hpp"
+#include "path_finding/dfs.hpp"
 
 bool dfs(Graph& g, int source, int sink, vector<bool>& visited, vector<Edge*>& path) {
     vector<int> stack;

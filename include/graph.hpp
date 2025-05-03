@@ -12,7 +12,7 @@
 using namespace std;
 
 struct Edge {
-    int from;
+    int from; // talvez não precise
     int to;
     int capacity;
     int flow;
