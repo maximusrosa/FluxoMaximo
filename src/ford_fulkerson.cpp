@@ -1,4 +1,5 @@
 #include "ford_fulkerson.hpp"
+#include "path_finding/search_stats.hpp"
 
 int getExpectedIterations(AugPathFinder augPathFind, int maxFlow, int numVertices, int numEdges) {
     int expectedItr;
@@ -9,11 +10,11 @@ int getExpectedIterations(AugPathFinder augPathFind, int maxFlow, int numVertice
 
     // Edmons-Karp
     } else if (augPathFind == bfs) {
-        expectedItr = numVertices * numEdges; // O(nm)
+        expectedItr = round((numVertices * numEdges) / 2); // O(nm / 2)
 
     // Fattest Path
     } else if (augPathFind == fattestPath) {
-        expectedItr = numEdges * log2(maxFlow); // O(m log C)
+        expectedItr = round(numEdges * log2(maxFlow)); // O(m log C)
 
     } else {
         throw invalid_argument("Unknown augmentation path finding strategy");
@@ -33,7 +34,7 @@ void printPath(const vector<Edge*>& path, int pathFlow) {
     cout << ", Flow: " << pathFlow << "\n";
 }
 
-int fordFulkerson(Graph& g, 
+FFstats fordFulkerson(Graph& g, 
                   AugPathFinder augPathFind) { 
     auto start = high_resolution_clock::now();
 
@@ -43,6 +44,8 @@ int fordFulkerson(Graph& g,
     int numEdges = g.getNumEdges();
     int maxFlow = 0;
 
+    PathSearchStats searchStats;
+
     int numIterations = 0;
     while (true) {
         numIterations++;
@@ -51,8 +54,8 @@ int fordFulkerson(Graph& g,
 
         path.clear();
 
-        if (!augPathFind(g, g.source, g.sink, visited, path)) break;
-
+        if (!augPathFind(g, g.source, g.sink, visited, path, searchStats)) break; 
+    
         int pathFlow = INF;
         for (Edge* e : path) {
             pathFlow = min(pathFlow, e->residualCapacity()); // bottleneck
@@ -63,26 +66,33 @@ int fordFulkerson(Graph& g,
         }
 
         maxFlow += pathFlow;
-
-        vector<int> pathVertices;
-        pathVertices.push_back(g.source);
-        for (Edge* e : path) {
-            pathVertices.push_back(e->to);
-        }
     }
 
-    // Calculate the expected number of iterations based on the algorithm variant
+    // Calcula a média das estatísticas
+    if (augPathFind == fattestPath){
+        searchStats.i_bar /= numIterations;
+        searchStats.d_bar /= numIterations;
+        searchStats.u_bar /= numIterations;
+    }
+    else {
+        searchStats.s_bar /= numIterations;
+        searchStats.t_bar /= numIterations;
+    }
+
+    // Number of iterations based on the theoretical complexity of the algorithm variant
     int expectedIterations = getExpectedIterations(augPathFind, maxFlow, numVertices, numEdges);
 
-    // Calculate the ratio r = I / I_bar
     double ratio = static_cast<double>(numIterations) / expectedIterations;
-    cout << "Razão de iterações (I / Ī): " << ratio << "\n";
 
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(end - start).count();
-    cout << "Tempo de execução: " << duration << " ms\n";
 
-    return maxFlow;
+    return FFstats{
+        maxFlow,
+        ratio,
+        static_cast<double>(duration),
+        searchStats
+    };
 }
 
 

@@ -1,35 +1,63 @@
 #include "path_finding/dfs.hpp"
 
-bool dfs(Graph& g, int source, int sink, vector<bool>& visited, vector<Edge*>& path) {
-    vector<int> stack;
+bool dfs(Graph& g, int source, int sink, vector<bool>& visited, vector<Edge*>& path, PathSearchStats& stats) {
+    stack<int> s;
     vector<Edge*> parent(g.getNumVertices(), nullptr);
-    stack.push_back(source);
+    
+    // Resetar o vetor de visitados antes de começar
+    fill(visited.begin(), visited.end(), false);
+    
+    int vertexVisits = 0;
+    int edgeVisits = 0;
 
-    while (!stack.empty()) {
-        int u = stack.back();
-        stack.pop_back();
+    s.push(source);
 
-        if (u == sink) {
-            // Reconstrói o caminho a partir do nó de destino
-            while (parent[u] != nullptr) {
-                path.push_back(parent[u]);
-                u = parent[u]->residual->to;
-            }
-            reverse(path.begin(), path.end());
+    // Gerador de números aleatórios
+    static minstd_rand rng(random_device{}());
+
+    while (!s.empty()) {
+        int u = s.top();
+        s.pop();
+        
+        // Se não visitamos ainda, marque e incremente o contador
+        if (!visited[u]) {
+            visited[u] = true;
+            vertexVisits++;
             
-            return true;
-        }
-
-        visited[u] = true;
-
-        // Verifica se existe pseudocaminho aumentante
-        for (Edge* e : g.getAdjList(u)) {
-            if (!visited[e->to] && e->residualCapacity() > 0) {
-                stack.push_back(e->to);
-                parent[e->to] = e;
+            // Verifique se é o destino imediatamente após marcar como visitado
+            if (u == sink) {
+                // Reconstrói o caminho a partir do nó de destino
+                while (parent[u] != nullptr) {
+                    path.push_back(parent[u]);
+                    u = parent[u]->from;
+                }
+                reverse(path.begin(), path.end());
+                
+                // Acumula frações s_i e t_i
+                stats.s_bar += static_cast<double>(vertexVisits) / g.getNumVertices();
+                stats.t_bar += static_cast<double>(edgeVisits) / g.getNumResidualEdges();
+                
+                return true;
+            }
+            
+            // Embaralha a lista de adjacência
+            auto adjList = g.getAdjList(u);
+            shuffle(adjList.begin(), adjList.end(), rng);
+            
+            for (Edge* e : adjList) {
+                edgeVisits++;  // Aresta foi examinada
+                
+                if (!visited[e->to] && e->residualCapacity() > 0) {
+                    s.push(e->to);
+                    parent[e->to] = e;
+                }
             }
         }
     }
-
+    
+    // Se falhou, ainda assim acumula stats
+    stats.s_bar += static_cast<double>(vertexVisits) / g.getNumVertices();
+    stats.t_bar += static_cast<double>(edgeVisits) / g.getNumResidualEdges();
+    
     return false;
 }

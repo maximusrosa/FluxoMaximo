@@ -72,6 +72,10 @@ int Graph::getNumEdges() const {
     return numEdges;
 }
 
+int Graph::getNumResidualEdges() const {
+    return numEdges * 2; // cada aresta tem uma aresta residual (aproximadamente)
+}
+
 const vector<Edge*>& Graph::getAdjList(int u) const {
     return adjVector[u];
 }

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -41,6 +40,7 @@ public:
 
     int getNumVertices() const;
     int getNumEdges() const;
+    int getNumResidualEdges() const;
     const vector<Edge*>& getAdjList(int u) const;
 
     void addEdge(int u, int v, int capacity);

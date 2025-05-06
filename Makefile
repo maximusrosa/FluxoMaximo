@@ -5,52 +5,53 @@ CC = cc
 # Flags
 CXXFLAGS = -std=c++17 -Wall -Wextra -g -Iinclude -Iinclude/path_finding
 CFLAGS = -Wall
-NO_WARN_FLAGS = -w  # Desativa todos os warnings
+NO_WARN_FLAGS = -w
 
-# Pastas
-INCLUDE_DIR = include
+# Diretórios
 SRC_DIR = src
-AUX_DIR = $(SRC_DIR)/aux
 BIN_DIR = bin
 OBJ_DIR = obj
+AUX_DIR = $(SRC_DIR)/aux
 
-# Arquivos fonte C++
-SRCS = $(SRC_DIR)/main.cpp \
-       $(SRC_DIR)/graph.cpp \
-       $(SRC_DIR)/path_finding/dfs.cpp \
-	   $(SRC_DIR)/path_finding/bfs.cpp \
-	   $(SRC_DIR)/path_finding/fattest_path.cpp \
-       $(SRC_DIR)/ford_fulkerson.cpp \
+# Arquivos C++
+SRCS = $(wildcard $(SRC_DIR)/*.cpp) \
+       $(wildcard $(SRC_DIR)/path_finding/*.cpp)
 
-# Fonte e objeto em C
+REF_SRC = $(SRC_DIR)/aux/maxflow.cpp
+MAIN_SRC = $(SRC_DIR)/main.cpp
+
+# Arquivo C
 C_SOURCE = $(AUX_DIR)/new_washington.c
 C_OBJECT = $(OBJ_DIR)/new_washington.o
 
 # Executáveis
-TARGET = $(BIN_DIR)/main
-EXEC_GEN = $(BIN_DIR)/gengraph
+MAIN_EXE = $(BIN_DIR)/main
+REF_EXE = $(BIN_DIR)/maxflow
+GENGRAPH_EXE = $(BIN_DIR)/gengraph
 
 # Alvo padrão
-all: $(TARGET) $(EXEC_GEN)
+all: $(MAIN_EXE) $(REF_EXE) $(GENGRAPH_EXE)
 
-# Diretórios
-$(BIN_DIR):
-	mkdir -p $(BIN_DIR)
+# Criar diretórios
+$(BIN_DIR) $(OBJ_DIR):
+	mkdir -p $@
 
-$(OBJ_DIR):
-	mkdir -p $(OBJ_DIR)
-
-# Compilação do programa principal (C++)
-$(TARGET): $(SRCS) | $(BIN_DIR)
+# Compila executável principal
+$(MAIN_EXE): $(filter-out $(REF_SRC), $(SRCS)) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $^ -o $@
-	@echo "Build complete. Execute with ./bin/main"
+	@echo "✅ Compilado: ./bin/main"
 
-# Compilação do new_washington.c (C) sem warnings
+# Compila executável de teste
+$(REF_EXE): $(REF_SRC) | $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $< -o $@
+	@echo "✅ Compilado: ./bin/maxflow"
+
+# Compila new_washington.c
 $(C_OBJECT): $(C_SOURCE) | $(OBJ_DIR)
 	$(CC) $(NO_WARN_FLAGS) -c $< -o $@
 
-# Geração do executável gengraph
-$(EXEC_GEN): $(C_OBJECT) | $(BIN_DIR)
+# Compila gengraph
+$(GENGRAPH_EXE): $(C_OBJECT) | $(BIN_DIR)
 	$(CC) -o $@ $^
 
 # Limpeza

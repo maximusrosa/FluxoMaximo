@@ -95,9 +95,9 @@ generate_graphs() {
 }
 
 # Generate datasets for each graph type
-#generate_graphs 5 "square_mesh"
-#generate_graphs 4 "matching"
+generate_graphs 5 "square_mesh"
+generate_graphs 4 "matching"
 generate_graphs 2 "random_level"
-#generate_graphs 6 "basic_line"
+generate_graphs 6 "basic_line"
 
 echo "All datasets generated successfully!"

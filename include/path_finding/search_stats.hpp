@@ -5,15 +5,11 @@
 using namespace std;
 
 struct PathSearchStats {
-    vector<double> s_i;  // n_i' / n
-    vector<double> t_i;  // m_i' / m
-    double s_bar;
-    double t_bar;
-    // Heap operations (if applicable)
-    vector<int> heap_insert_ops, heap_deletemin_ops, heap_update_ops;
+    // Percentual of vertices and edges covered (s̄ and t̄)
+    double s_bar, t_bar = 0;
 
-    void print() const {
-        cout << "Vertex Coverage (s̄): " << s_bar << "\n"
-                  << "Edge Coverage (t̄): " << t_bar << "\n";
-    }
+    // Heap operations (for Fattest Path)
+    double i_bar = 0; // insert / number of vertices
+    double d_bar = 0; // deletemin / number of vertices
+    double u_bar = 0; // update / number of edges
 };
